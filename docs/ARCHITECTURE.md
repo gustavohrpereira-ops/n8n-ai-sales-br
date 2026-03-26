@@ -38,7 +38,17 @@ Unlike generic automation, this architecture treats the LLM as a **State Machine
 
 ---
 
-## 4. Security & Compliance
+## 4. Scalability (10,000+ Advisors)
+
+To support 10,000+ users and national-level expansion (Ademicon, Itaú, Porto Seguro), the architecture implements:
+
+- **Autopilot Efficiency:** Workflows are optimized to handle repetitive tasks without human intervention, ensuring zero latency in lead response.
+- **Token Optimization:** Prompts are engineered to minimize token usage while maintaining complex reasoning, critical for high-volume operations.
+- **Rate Limit Management:** Implementation of retry logic and queues in n8n to manage Anthropic API limits during peak demand.
+
+---
+
+## 5. Security & Compliance
 
 - **PII Protection:** We recommend masking sensitive data before sending it to the Anthropic API.
 - **Audit Log:** Every decision made by Claude is logged in the CRM notes for broker review.
@@ -46,4 +56,4 @@ Unlike generic automation, this architecture treats the LLM as a **State Machine
 
 ---
 
-*Powered by [Claude AI](https://claude.ai) + [n8n](https://n8n.io) 💜*
+*Powered by [Claude AI](https://claude.ai/) + [n8n](https://n8n.io/) 💜*
