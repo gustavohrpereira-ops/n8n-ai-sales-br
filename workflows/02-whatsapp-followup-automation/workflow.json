@@ -1,0 +1,75 @@
+{
+  "name": "02 - WhatsApp Follow-up Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1-5" }] }
+      },
+      "id": "cron-trigger",
+      "name": "Cron - Diario 9h Seg-Sex",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "value": "YOUR_SHEET_ID" },
+        "sheetName": "Leads"
+      },
+      "id": "read-leads",
+      "name": "Le Leads Sem Resposta",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $input.all();\nconst hoje = new Date();\nreturn leads.filter(item => {\n  const lead = item.json;\n  if (lead.status === 'FECHADO' || lead.status === 'DESCARTADO') return false;\n  if (!lead.data_entrada) return false;\n  const dataEntrada = new Date(lead.data_entrada);\n  const diffHoras = (hoje - dataEntrada) / (1000 * 60 * 60);\n  const ultimoFollowup = lead.ultimo_followup ? new Date(lead.ultimo_followup) : dataEntrada;\n  const horasSemContato = (hoje - ultimoFollowup) / (1000 * 60 * 60);\n  return horasSemContato >= 24 && diffHoras <= 720;\n});"
+      },
+      "id": "filter-leads",
+      "name": "Filtra Leads Para Follow-up",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "300" },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Escreva um follow-up WhatsApp para:\\nNome: {{ $json.nome }}\\nInteresse: {{ $json.interesse }}\\nDias sem contato: {{ Math.floor((new Date() - new Date($json.data_entrada)) / 86400000) }}\\nRegras: max 3 linhas, tom amigavel, termine com pergunta aberta\"}]" }
+          ]
+        }
+      },
+      "id": "claude-message",
+      "name": "Claude - Gera Mensagem Personalizada",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst mensagem = response.content[0].text.trim();\nreturn [{ json: { mensagem_followup: mensagem, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "prepare-message",
+      "name": "Prepara Mensagem Final",
+      "type": "n8n-nodes-base.code",
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Cron - Diario 9h Seg-Sex": { "main": [[{ "node": "Le Leads Sem Resposta" }]] },
+    "Le Leads Sem Resposta": { "main": [[{ "node": "Filtra Leads Para Follow-up" }]] },
+    "Filtra Leads Para Follow-up": { "main": [[{ "node": "Claude - Gera Mensagem Personalizada" }]] },
+    "Claude - Gera Mensagem Personalizada": { "main": [[{ "node": "Prepara Mensagem Final" }]] }
+  }
+}
