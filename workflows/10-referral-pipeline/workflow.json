@@ -1,0 +1,67 @@
+{
+  "name": "10 - Referral Pipeline - Indicacoes Automaticas",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nova-indicacao"
+      },
+      "id": "webhook-referral",
+      "name": "Webhook - Nova Indicacao Recebida",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "600" },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Crie 2 mensagens para pipeline de indicacao de consorcio:\\n\\n1. MENSAGEM PARA O INDICADO (primeiro contato): mencione que {{ $json.body.indicador_nome }} indicou, seja caloroso, nao seja invasivo, desperte curiosidade sobre consorcio\\n\\n2. MENSAGEM DE AGRADECIMENTO AO INDICADOR: agradeca a indicacao de {{ $json.body.indicado_nome }}, reforce o valor do programa de indicacao, mencione beneficio/bonificacao prevista\\n\\nDados:\\nIndicador: {{ $json.body.indicador_nome }}\\nIndicado: {{ $json.body.indicado_nome }}\\nTelefone indicado: {{ $json.body.indicado_telefone }}\\nProduto interesse: {{ $json.body.produto_interesse }}\\n\\nRetorne JSON: { msg_indicado: string, msg_indicador: string }\"}]" }
+          ]
+        }
+      },
+      "id": "claude-referral",
+      "name": "Claude - Gera Mensagens Indicacao",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json.content[0].text;\nlet msgs;\ntry { msgs = JSON.parse(resp); } catch(e) { const m = resp.match(/\\{[\\s\\S]*\\}/); msgs = m ? JSON.parse(m[0]) : { msg_indicado: resp, msg_indicador: '' }; }\nconst data = $('Webhook - Nova Indicacao Recebida').first().json.body;\nreturn [{ json: { ...msgs, indicador: data.indicador_nome, indicado: data.indicado_nome, telefone: data.indicado_telefone, produto: data.produto_interesse, status: 'NOVO', data_indicacao: new Date().toISOString() } }];"
+      },
+      "id": "process-referral",
+      "name": "Processa Indicacao",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "value": "YOUR_SHEET_ID" },
+        "sheetName": "Indicacoes",
+        "columns": { "mappingMode": "autoMapInputData" }
+      },
+      "id": "save-referral",
+      "name": "Salva Indicacao no CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Nova Indicacao Recebida": { "main": [[{ "node": "Claude - Gera Mensagens Indicacao" }]] },
+    "Claude - Gera Mensagens Indicacao": { "main": [[{ "node": "Processa Indicacao" }]] },
+    "Processa Indicacao": { "main": [[{ "node": "Salva Indicacao no CRM" }]] }
+  }
+}
