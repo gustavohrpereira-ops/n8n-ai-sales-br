@@ -1,0 +1,6 @@
+Novo contato → Busca dados públicos (LinkedIn scraping, CNPJ API)
+→ Claude API: "Com base nesses dados, infira:
+   perfil financeiro estimado, melhor produto a oferecer,
+   objeções prováveis e abordagem recomendada"
+→ Atualiza card no CRM com campos enriquecidos
+→ Sugere próxima ação ao vendedor responsável
