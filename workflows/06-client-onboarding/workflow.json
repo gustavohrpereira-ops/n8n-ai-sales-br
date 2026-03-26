@@ -1,0 +1,67 @@
+{
+  "name": "06 - Client Onboarding Automatico",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "novo-cliente"
+      },
+      "id": "webhook-new-client",
+      "name": "Webhook - Cliente Fechou Consorcio",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "800" },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Crie uma mensagem de boas-vindas calorosa para novo cliente de consorcio.\\nNome: {{ $json.body.nome }}\\nProduto: {{ $json.body.produto }}\\nValor: R$ {{ $json.body.valor }}\\nPrazo: {{ $json.body.prazo }} meses\\nConsultor: {{ $json.body.consultor }}\\n\\nInclua: agradecimento, resumo do que foi contratado, proximos passos (documentacao, assembleia, app), contato do consultor e mensagem motivacional. Tom: profissional e animado.\"}]" }
+          ]
+        }
+      },
+      "id": "claude-welcome",
+      "name": "Claude - Gera Boas Vindas",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json.content[0].text;\nconst client = $('Webhook - Cliente Fechou Consorcio').first().json.body;\nreturn [{ json: { mensagem_boas_vindas: msg, nome: client.nome, telefone: client.telefone, email: client.email, produto: client.produto, data_onboarding: new Date().toISOString() } }];"
+      },
+      "id": "prepare-onboarding",
+      "name": "Prepara Dados Onboarding",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "value": "YOUR_SHEET_ID" },
+        "sheetName": "Clientes",
+        "columns": { "mappingMode": "autoMapInputData" }
+      },
+      "id": "save-client",
+      "name": "Salva Cliente na Base",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Cliente Fechou Consorcio": { "main": [[{ "node": "Claude - Gera Boas Vindas" }]] },
+    "Claude - Gera Boas Vindas": { "main": [[{ "node": "Prepara Dados Onboarding" }]] },
+    "Prepara Dados Onboarding": { "main": [[{ "node": "Salva Cliente na Base" }]] }
+  }
+}
