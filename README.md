@@ -9,6 +9,11 @@ Projetado especificamente para o ecossistema brasileiro (WhatsApp, CRM Pipedrive
 - **Saída Estruturada:** Prompts otimizados para gerar JSON determinístico, garantindo que o n8n nunca falhe na execução.
 - **Conformidade Local:** Ajustado para as regulamentações financeiras do BACEN e práticas de vendas brasileiras.
 
+## 🚀 Impacto em Larga Escala (10.000+ Usuários)
+Este projeto nasceu para transformar a produtividade de **10.000+ assessores** no Brasil, permitindo que tarefas repetitivas rodem no **Autopilot**. 
+- **Foco Consultivo:** Liberamos o assessor para focar no atendimento humano e agregar valor real ao cliente.
+- **Grandes Players:** Preparado para escala em instituições como **Ademicon, Itaú, Porto Seguro, Bradesco, Embracon, HS, Rodobens, Sicoob, Caixa** e escritórios de investimento.
+
 ## 📂 Estrutura do Repositório
 - `/workflows`: Workflows n8n prontos para importação.
 - `/docs`: Documentação técnica, arquitetura e métricas de impacto.
@@ -24,7 +29,7 @@ Projetado especificamente para o ecossistema brasileiro (WhatsApp, CRM Pipedrive
 | 04 | CRM Enrichment | Enriquece dados de leads via IA + CNPJ | ~4h/semana |
 | 05 | AI Sales Report | Relatórios semanais com insights de IA | ~3h/semana |
 | 06 | Client Onboarding | Boas-vindas personalizada ao novo cliente | ~30min/cliente |
-| 07 | Cold Lead Reactivation | Reactiva leads frios (30-180 dias) | ~2h/semana |
+| 07 | Cold Lead Reactivation | Reativa leads frios (30-180 dias) | ~2h/semana |
 | 08 | Objection Handler FAQ | Responde objeções e perguntas com IA | ~1h/dia |
 | 09 | Contemplation Notification | Notifica e orienta cliente contemplado | ~45min/evento |
 | 10 | Referral Pipeline | Automatiza programa de indicações | ~3h/semana |
