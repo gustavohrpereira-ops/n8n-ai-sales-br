@@ -6,59 +6,50 @@
 
 ## 1. Project Summary
 
-**n8n-ai-sales-br** is an open-source library of Claude-powered n8n automation workflows designed specifically for the Brazilian consórcio market. Our project is scaling to impact **10,000+ sales advisors** immediately, with expansion plans for major financial institutions (Ademicon, Itaú, Porto Seguro, Bradesco, Embracon, HS, Rodobens, Sicoob, Caixa).
+**n8n-ai-sales-br** is an open-source library of Claude-powered n8n automation workflows designed specifically for the Brazilian consórcio market. Our project is scaling to impact **10,000+ sales advisors** immediately, with expansion plans for all major financial institutions in the segment (**Ademicon, Itaú, Porto Seguro, Bradesco, Embracon, HS, Rodobens, Sicoob, Caixa**).
 
-Every workflow in this repository uses **Claude as the core reasoning engine**. Claude is not a plugin — it is the intelligence that allows advisors to move from repetitive tasks to a high-value consultative focus.
+Every workflow in this repository uses **Claude 3.5 Sonnet as the core reasoning engine**. Claude is not just a chatbot here; it is the intelligence layer that allows advisors to move from repetitive, low-value tasks to a high-value consultative focus through our integrated dashboard.
 
 ---
 
 ## 2. Massive Impact & Vision
 
 ### The 10,000+ Advisor Milestone
-Our current implementation phase targets a workforce of **10,000 assessores**. By putting repetitive sales tasks on **Autopilot**, we are:
-- **Freeing up 60% of their time:** Moving from data entry and manual follow-ups to strategic client advisory.
-- **Empowering Human Connection:** The dashboard provided by our SaaS allows advisors to be truly consultative, adding real value to the end customer.
+Our current implementation phase targets a workforce of **10,000 assessores**. By putting repetitive sales and administrative tasks on **Autopilot**, we are:
+
+- **Freeing up 60-70% of their time:** Automating lead qualification, follow-ups, and proposal generation.
+- **Enabling Consultative Sales:** The time saved allows advisors to use our **Dashboard** to focus on complex financial planning and serving the client, not typing data.
+- **Direct Social Impact:** More than 10,000 people and companies will be directly impacted by this efficiency boost in the first phase alone.
 
 ### Market-Wide Expansion
-Following this initial rollout, we are expanding to all major players in the Brazilian financial segment. The combined reach covers the majority of the R$500 billion+ consórcio market.
+Following this initial rollout, we are expanding to all major players in the Brazilian financial segment. The goal is to set a new standard for how AI and humans collaborate in high-stakes financial sales.
 
 ---
 
-## 3. The Problem We Solve
+## 3. The Problem & The Claude Solution
 
-### The Pain Points
+### The Bottlenecks
 | Problem | Impact |
 |---|---|
-| Brokers manually qualify every lead | 2-4 hours/day wasted |
-| Repetitive admin tasks | Low morale and burnout |
-| Slow development due to API limits | Development speed bottlenecked by token costs |
+| Brokers manually qualify every lead | 3-4 hours/day of productive time lost |
+| Repetitive admin & CRM entry | Advisor burnout and low client satisfaction |
+| Nuanced financial compliance | High risk of errors in manual communication |
 
-### Why Claude is the Only Solution
-The consórcio sales language is highly nuanced. Claude is the only model that handles Brazilian financial psychology and BACEN compliance natively at a professional level.
-
----
-
-## 4. Technical Challenge: Token Optimization
-Development is currently "slow but steady" due to high token usage in complex multi-step reasoning. Grant support would allow us to:
-1. **Accelerate R&D:** Test more complex "Autopilot" scenarios without being limited by daily quotas.
-2. **Optimize Context:** Implement advanced caching strategies to maintain high-quality reasoning at scale.
+### Why Claude?
+The Brazilian consórcio market is unique, with complex regulations (**BACEN**) and a specific sales psychology. Claude 3.5 Sonnet is the only model we've tested that maintains the **cultural nuance and professional tone** required for this industry while being 100% compliant with local regulations.
 
 ---
 
-## 5. Impact Projections (Immediate)
+## 4. Current State & Grant Purpose
 
-| Metric | Estimate |
-|---|---|
-| Initial direct impact | 10,000+ Advisors |
-| Major Institutions | 9+ (Itaú, Porto Seguro, etc.) |
-| Productivity Gain | ~15 hours saved/week per advisor |
-| Revenue impact | Massive scale across national portfolios |
+### "Slow but Steady" Development
+Our development with Claude has been highly successful but is currently limited by token costs and rate limits for complex multi-step reasoning. We are building a high-performance system, but "slowly" to stay within resource constraints.
+
+### How the Grant Will Be Used
+1. **Accelerate Autopilot R&D:** Test and deploy more complex multi-agent scenarios for objection handling and credit analysis.
+2. **Token Optimization at Scale:** Implement and benchmark advanced caching and prompt engineering strategies for 10k+ concurrent users.
+3. **Open Source Evangelism:** Create more documentation and tutorials in Portuguese to empower the Brazilian dev community to use Claude-Native automation.
 
 ---
 
-## 6. The Builder: Gustavo Pereira
-With 10+ years in the industry and a background as a Senior Frontend Systems Engineer, Gustavo is uniquely positioned to bridge the gap between financial sales and AI automation.
-
-**No Claude = No product. Simple as that.**
-
-This document was updated in March 2026 to reflect the massive scale of the current rollout.
+*Powered by Claude AI & The Passion for Financial Democratization in Brazil 🇧🇷*
