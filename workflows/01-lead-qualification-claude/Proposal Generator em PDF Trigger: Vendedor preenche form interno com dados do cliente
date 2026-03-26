@@ -1,0 +1,7 @@
+Formulário interno → Claude API:
+→ Gera texto personalizado da proposta (valor, benefícios,
+   condições, CTA adaptado ao perfil do cliente)
+→ Monta HTML formatado
+→ Converte em PDF via API (PDFMonkey ou similar)
+→ Envia por email ao cliente + salva no Google Drive
+→ Notifica vendedor com link
