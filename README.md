@@ -43,5 +43,17 @@ Este projeto nasceu para transformar a produtividade de **10.000+ assessores** n
 ## 📄 Licença
 Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
+
+https://github.com/user-attachments/assets/8faa767b-02c0-4f8d-b993-ffea46799eb0
+
+
 ---
 *Powered by Claude AI & n8n 💜*
+
+
+
+
+https://github.com/user-attachments/assets/155b700c-7e74-453a-a217-8442d2a81e8b
+
+
+
