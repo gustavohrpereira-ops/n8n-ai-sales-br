@@ -1,0 +1,66 @@
+{
+  "name": "03 - Proposal Generator PDF",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-proposal",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-proposal",
+      "name": "Webhook - Gerar Proposta",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "2000" },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Crie uma proposta comercial profissional em HTML para:\\nCliente: {{ $json.body.nome }}\\nProduto: {{ $json.body.produto }}\\nValor: R$ {{ $json.body.valor }}\\nPrazo: {{ $json.body.prazo }} meses\\nParcela: R$ {{ $json.body.parcela }}\\nInclua: apresentacao personalizada, como funciona, vantagens, tabela financeira, proximos passos e CTA forte.\"}]" }
+          ]
+        }
+      },
+      "id": "claude-proposal",
+      "name": "Claude - Gera Proposta HTML",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst html = response.content[0].text;\nreturn [{ json: { html_proposta: html, cliente: $('Webhook - Gerar Proposta').first().json.body.nome, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "extract-html",
+      "name": "Extrai HTML da Proposta",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, html: $json.html_proposta, cliente: $json.cliente }) }}"
+      },
+      "id": "webhook-response",
+      "name": "Retorna Proposta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Gerar Proposta": { "main": [[{ "node": "Claude - Gera Proposta HTML" }]] },
+    "Claude - Gera Proposta HTML": { "main": [[{ "node": "Extrai HTML da Proposta" }]] },
+    "Extrai HTML da Proposta": { "main": [[{ "node": "Retorna Proposta" }]] }
+  }
+}
