@@ -1,0 +1,67 @@
+{
+  "name": "09 - Contemplation Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "contemplado"
+      },
+      "id": "webhook-contemplation",
+      "name": "Webhook - Cliente Contemplado",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "600" },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Crie 2 mensagens para cliente contemplado em consorcio:\\n\\n1. MENSAGEM WHATSAPP (max 5 linhas): celebracao calorosa, confirmacao do valor contemplado, proximos passos urgentes (documentacao em 48h, uso do credito em 180 dias), contato do consultor\\n\\n2. MENSAGEM EMAIL (completo): titulo chamativo, parabenizacao, detalhes do credito (R$ {{ $json.body.valor }}), checklist de documentos necessarios, prazo de utilizacao, instrucoes de uso do credito, CTA para agendamento\\n\\nDados: Nome={{ $json.body.nome }}, Valor=R$ {{ $json.body.valor }}, Produto={{ $json.body.produto }}, Tipo={{ $json.body.tipo_contemplacao }}, Consultor={{ $json.body.consultor }}\\n\\nRetorne JSON: { whatsapp: string, email_assunto: string, email_corpo: string }\"}]" }
+          ]
+        }
+      },
+      "id": "claude-congrats",
+      "name": "Claude - Gera Mensagens Contemplacao",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json.content[0].text;\nlet msgs;\ntry { msgs = JSON.parse(resp); } catch(e) { const m = resp.match(/\\{[\\s\\S]*\\}/); msgs = m ? JSON.parse(m[0]) : { whatsapp: resp, email_assunto: 'Parabens!', email_corpo: resp }; }\nconst data = $('Webhook - Cliente Contemplado').first().json.body;\nreturn [{ json: { ...msgs, cliente: data.nome, valor: data.valor, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "parse-messages",
+      "name": "Processa Mensagens",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "value": "YOUR_SHEET_ID" },
+        "sheetName": "Contemplados",
+        "columns": { "mappingMode": "autoMapInputData" }
+      },
+      "id": "log-contemplation",
+      "name": "Registra Contemplacao",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Cliente Contemplado": { "main": [[{ "node": "Claude - Gera Mensagens Contemplacao" }]] },
+    "Claude - Gera Mensagens Contemplacao": { "main": [[{ "node": "Processa Mensagens" }]] },
+    "Processa Mensagens": { "main": [[{ "node": "Registra Contemplacao" }]] }
+  }
+}
