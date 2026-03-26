@@ -1,0 +1,75 @@
+{
+  "name": "05 - AI Sales Report Semanal",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 8 * * 1" }] }
+      },
+      "id": "cron-monday",
+      "name": "Cron - Segunda 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "value": "YOUR_SHEET_ID" },
+        "sheetName": "Leads"
+      },
+      "id": "read-data",
+      "name": "Le Dados da Semana",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst umaSemanaAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);\nconst semana = items.filter(i => new Date(i.json.data_entrada) >= umaSemanaAtras);\nconst hot = semana.filter(i => i.json.classificacao === 'HOT').length;\nconst warm = semana.filter(i => i.json.classificacao === 'WARM').length;\nconst cold = semana.filter(i => i.json.classificacao === 'COLD').length;\nconst fechados = semana.filter(i => i.json.status === 'FECHADO').length;\nreturn [{ json: { total_leads: semana.length, hot, warm, cold, fechados, taxa_conversao: semana.length > 0 ? ((fechados/semana.length)*100).toFixed(1)+'%' : '0%', periodo: umaSemanaAtras.toLocaleDateString('pt-BR') + ' a ' + new Date().toLocaleDateString('pt-BR'), leads_raw: JSON.stringify(semana.slice(0,10).map(i => i.json)) } }];"
+      },
+      "id": "calc-metrics",
+      "name": "Calcula Metricas",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "1000" },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Voce e analista de vendas de consorcio. Analise estes dados e gere relatorio executivo com: 1) Resumo da semana (3 bullets), 2) Lead mais quente identificado, 3) Principal gargalo, 4) Recomendacao prioritaria para esta semana.\\n\\nDados: Total={{ $json.total_leads }}, HOT={{ $json.hot }}, WARM={{ $json.warm }}, COLD={{ $json.cold }}, Fechados={{ $json.fechados }}, Conversao={{ $json.taxa_conversao }}, Periodo={{ $json.periodo }}\"}]" }
+          ]
+        }
+      },
+      "id": "claude-report",
+      "name": "Claude - Gera Analise",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const analysis = $input.first().json.content[0].text;\nconst metrics = $('Calcula Metricas').first().json;\nconst html = `<h2>Relatorio Semanal de Vendas - ${metrics.periodo}</h2><hr><h3>Metricas</h3><ul><li>Total de leads: ${metrics.total_leads}</li><li>HOT: ${metrics.hot} | WARM: ${metrics.warm} | COLD: ${metrics.cold}</li><li>Fechados: ${metrics.fechados} (${metrics.taxa_conversao})</li></ul><h3>Analise IA</h3><p>${analysis.replace(/\\n/g, '<br>')}</p>`;\nreturn [{ json: { html_report: html, analysis, ...metrics } }];"
+      },
+      "id": "build-report",
+      "name": "Monta Relatorio HTML",
+      "type": "n8n-nodes-base.code",
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Cron - Segunda 8h": { "main": [[{ "node": "Le Dados da Semana" }]] },
+    "Le Dados da Semana": { "main": [[{ "node": "Calcula Metricas" }]] },
+    "Calcula Metricas": { "main": [[{ "node": "Claude - Gera Analise" }]] },
+    "Claude - Gera Analise": { "main": [[{ "node": "Monta Relatorio HTML" }]] }
+  }
+}
