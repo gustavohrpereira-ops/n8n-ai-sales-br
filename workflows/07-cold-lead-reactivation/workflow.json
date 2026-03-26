@@ -1,0 +1,75 @@
+{
+  "name": "07 - Cold Lead Reactivation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 10 * * 3" }] }
+      },
+      "id": "cron-wednesday",
+      "name": "Cron - Quarta 10h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "value": "YOUR_SHEET_ID" },
+        "sheetName": "Leads"
+      },
+      "id": "read-cold",
+      "name": "Le Leads Frios",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst hoje = new Date();\nreturn items.filter(item => {\n  const lead = item.json;\n  if (lead.status === 'FECHADO' || lead.status === 'DESCARTADO') return false;\n  if (!lead.data_entrada) return false;\n  const dias = (hoje - new Date(lead.data_entrada)) / (1000*60*60*24);\n  return dias >= 30 && dias <= 180 && lead.classificacao !== 'HOT';\n});"
+      },
+      "id": "filter-cold",
+      "name": "Filtra Leads 30-180 Dias Inativos",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "300" },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Escreva uma mensagem de reativacao para lead frio de consorcio.\\nNome: {{ $json.nome }}\\nInteresse: {{ $json.interesse }}\\nDias sem contato: {{ Math.floor((new Date() - new Date($json.data_entrada)) / 86400000) }}\\n\\nUse um gancho novo (novidade de mercado, taxa SELIC, lancamento), seja curto (max 4 linhas) e termine com pergunta direta sobre disponibilidade.\"}]" }
+          ]
+        }
+      },
+      "id": "claude-reactivation",
+      "name": "Claude - Cria Mensagem Reativacao",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json.content[0].text;\nreturn [{ json: { mensagem_reativacao: msg, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "output",
+      "name": "Saida - Mensagem Pronta",
+      "type": "n8n-nodes-base.code",
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Cron - Quarta 10h": { "main": [[{ "node": "Le Leads Frios" }]] },
+    "Le Leads Frios": { "main": [[{ "node": "Filtra Leads 30-180 Dias Inativos" }]] },
+    "Filtra Leads 30-180 Dias Inativos": { "main": [[{ "node": "Claude - Cria Mensagem Reativacao" }]] },
+    "Claude - Cria Mensagem Reativacao": { "main": [[{ "node": "Saida - Mensagem Pronta" }]] }
+  }
+}
