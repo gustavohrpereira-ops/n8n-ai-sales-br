@@ -15,8 +15,10 @@ Este documento detalha o plano de desenvolvimento para o ecossistema n8n-ai-sale
 
 ## 🚧 Em Desenvolvimento (Fase 2)
 
-### 1. Dashboard Financeiro SaaS - Expansão
-- Novas métricas de ROI e previsibilidade de vendas.
+### 1. Dashboard Financeiro SaaS - Expansão e Escala
+- **Foco em 10.000+ Assessores:** Otimização de infraestrutura para suportar volumes massivos de dados.
+- **Autopilot Mode:** Implementação de fluxos 100% autônomos para tarefas repetitivas de back-office.
+- **Grandes Players:** Homologação e integração para Ademicon, Itaú, Porto Seguro e outros parceiros estratégicos.
 - Integração profunda com Pipedrive e Hubspot.
 
 ### 2. 5 Landing Pages Claude-Powered
@@ -25,5 +27,12 @@ Este documento detalha o plano de desenvolvimento para o ecossistema n8n-ai-sale
 
 ## 🔮 Futuro (Fase 3)
 
-- **IA Multi-Agente:** Colaboração entre diferentes "personas" de IA para fechamento de vendas complexas.
-- **Expansão para outros setores:** Adaptação dos workflows para Real Estate e Seguros.
+### 1. IA Multi-Agente para Vendas Complexas
+- Colaboração entre diferentes "personas" de IA para análise de crédito e fechamento.
+
+### 2. Expansão de Mercado
+- Adaptação dos workflows para Real Estate, Seguros e Consórcios de grande porte em toda a América Latina.
+
+---
+
+*Powered by Claude AI & n8n 💜*
