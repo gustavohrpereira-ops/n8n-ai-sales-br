@@ -1,0 +1,114 @@
+{
+  "name": "01 - Lead Qualification with Claude",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-qualification",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - New Lead",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nreturn [{\n  json: {\n    nome: body.nome || body.name || 'Não informado',\n    telefone: body.telefone || body.phone || '',\n    email: body.email || '',\n    interesse: body.interesse || body.product || 'Consórcio',\n    renda: body.renda || body.income || 'Não informado',\n    origem: body.origem || body.source || 'Formulário',\n    mensagem: body.mensagem || body.message || ''\n  }\n}];"
+      },
+      "id": "format-data",
+      "name": "Formata Dados do Lead",
+      "type": "n8n-nodes-base.code",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $credentials.value }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-opus-4-5"
+            },
+            {
+              "name": "max_tokens",
+              "value": "500"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\":\"user\",\"content\":\"Você é um especialista em vendas de consórcio e imóveis no Brasil.\\n\\nAnalise este lead e retorne APENAS um JSON válido com esta estrutura:\\n{\\\"score\\\": 0-100, \\\"classificacao\\\": \\\"HOT|WARM|COLD\\\", \\\"justificativa\\\": \\\"máximo 2 linhas\\\", \\\"proximo_passo\\\": \\\"ação recomendada\\\", \\\"melhor_produto\\\": \\\"produto ideal para este lead\\\"}\\n\\nDados do lead:\\nNome: {{ $json.nome }}\\nTelefone: {{ $json.telefone }}\\nEmail: {{ $json.email }}\\nInteresse: {{ $json.interesse }}\\nRenda declarada: {{ $json.renda }}\\nOrigem: {{ $json.origem }}\\nMensagem: {{ $json.mensagem }}\"}]"
+            }
+          ]
+        }
+      },
+      "id": "claude-qualification",
+      "name": "Claude - Qualifica Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nlet analysis;\ntry {\n  analysis = JSON.parse(content);\n} catch(e) {\n  const match = content.match(/\\{[\\s\\S]*\\}/);\n  analysis = match ? JSON.parse(match[0]) : { score: 50, classificacao: 'WARM', justificativa: 'Análise indisponível', proximo_passo: 'Contato manual', melhor_produto: 'A definir' };\n}\nconst lead = $('Formata Dados do Lead').first().json;\nreturn [{ json: { ...lead, ...analysis, data_entrada: new Date().toISOString() } }];"
+      },
+      "id": "parse-response",
+      "name": "Processa Resposta Claude",
+      "type": "n8n-nodes-base.code",
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "value": "YOUR_SHEET_ID" },
+        "sheetName": "Leads",
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        }
+      },
+      "id": "save-sheets",
+      "name": "Salva no Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.classificacao }}", "value2": "HOT" }]
+        }
+      },
+      "id": "check-hot",
+      "name": "É Lead HOT?",
+      "type": "n8n-nodes-base.if",
+      "position": [1050, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, score: $('Processa Resposta Claude').first().json.score, classificacao: $('Processa Resposta Claude').first().json.classificacao }) }}"
+      },
+      "id": "webhook-response",
+      "name": "Resposta Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - New Lead": { "main": [[{ "node": "Formata Dados do Lead" }]] },
+    "Formata Dados do Lead": { "main": [[{ "node": "Claude - Qualifica Lead" }]] },
+    "Claude - Qualifica Lead": { "main": [[{ "node": "Processa Resposta Claude" }]] },
+    "Processa Resposta Claude": {
+      "main": [[{ "node": "Salva no Google Sheets" }, { "node": "É Lead HOT?" }, { "node": "Resposta Webhook" }]]
+    }
+  }
+}
