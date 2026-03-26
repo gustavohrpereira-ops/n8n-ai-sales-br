@@ -1,0 +1,66 @@
+{
+  "name": "08 - Objection Handler & FAQ Automatico",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "responder-objecao"
+      },
+      "id": "webhook-objection",
+      "name": "Webhook - Pergunta ou Objecao",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "YOUR_ANTHROPIC_API_KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-opus-4-5" },
+            { "name": "max_tokens", "value": "500" },
+            { "name": "system", "value": "Voce e especialista em consorcio brasileiro com 15 anos de experiencia. Responda objecoes e perguntas de forma clara, honesta e persuasiva. Use dados reais do mercado brasileiro. Conhecimento base: consorcio nao tem juros (apenas taxa de administracao de 12-20% total), contemplacao por sorteio ou lance, BACEN regula, Ademicon, Porto Seguro, Itau sao as maiores administradoras." },
+            { "name": "messages", "value": "=[{\"role\":\"user\",\"content\":\"Cliente {{ $json.body.nome }} perguntou: {{ $json.body.pergunta }}\\n\\nContexto adicional: produto={{ $json.body.produto }}, estagio={{ $json.body.estagio_funil }}\\n\\nResponda de forma direta e convincente em max 4 paragrafos.\"}]" }
+          ]
+        }
+      },
+      "id": "claude-objection",
+      "name": "Claude - Responde Objecao",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = $input.first().json.content[0].text;\nconst req = $('Webhook - Pergunta ou Objecao').first().json.body;\nreturn [{ json: { resposta: resp, cliente: req.nome, pergunta: req.pergunta, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "format-response",
+      "name": "Formata Resposta",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, resposta: $json.resposta }) }}"
+      },
+      "id": "send-response",
+      "name": "Retorna Resposta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Pergunta ou Objecao": { "main": [[{ "node": "Claude - Responde Objecao" }]] },
+    "Claude - Responde Objecao": { "main": [[{ "node": "Formata Resposta" }]] },
+    "Formata Resposta": { "main": [[{ "node": "Retorna Resposta" }]] }
+  }
+}
