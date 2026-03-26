@@ -1,0 +1,9 @@
+Google Sheets / CRM → Coleta dados da semana anterior
+→ Claude API: "Analise estes dados de vendas e gere:
+   1. Resumo executivo (3 bullets)
+   2. Lead mais quente desta semana
+   3. Gargalo principal identificado
+   4. Recomendação de ação prioritária"
+→ Formata em HTML elegante
+→ Envia por email para gestor + time
+→ Posta resumo no canal Slack/WhatsApp do time
